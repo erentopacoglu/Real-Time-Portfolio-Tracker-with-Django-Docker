@@ -17,13 +17,15 @@ This project is a high-performance **Django** backend system integrated with **D
 
 ## 🔧 Installation & Setup
 1. Clone the repository:
-bash
+
+Bash
 
 ```git clone [https://github.com/erentopacoglu/Real-Time-Portfolio-Tracker-with-Django-Docker.git](https://github.com/erentopacoglu/Real-Time-Portfolio-Tracker-with-Django-Docker)```
 
 Set up the Docker container for PostgreSQL:
 
 Bash
+
 ```docker run --name portfolio_db -e POSTGRES_PASSWORD=pass -p 5432:5432 -d postgres```
 
 Install dependencies:
