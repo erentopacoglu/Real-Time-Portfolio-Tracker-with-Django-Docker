@@ -1,0 +1,16 @@
+# Python bytecode (Derlenmiş çöp dosyalar)
+__pycache__/
+*.pyc
+
+# Local veritabanı (Docker kullanıyoruz, SQLite'a gerek yok)
+db.sqlite3
+
+# Sanal ortam (venv klasörü asla yüklenmez, herkes kendi bilgisayarında kurar)
+venv/
+.venv/
+
+# VS Code ayarları
+.vscode/
+
+# Çevresel değişkenler (Şifreler vb. ilerde buraya gelecek)
+.env
