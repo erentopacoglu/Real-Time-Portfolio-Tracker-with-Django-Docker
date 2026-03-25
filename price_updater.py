@@ -3,45 +3,73 @@ import psycopg2
 import time
 from datetime import datetime
 
+# Veritabanı Ayarları
 DB_CONFIG = {
     "dbname": "portfolio_db",
     "user": "postgres",
     "password": "pass",
-    "host": "localhost",
+    "host": "127.0.0.1",
     "port": "5432"
 }
 
-def collect_data(iteration):
-    symbols = ["THYAO.IS", "EREGL.IS", "ASELS.IS"]
-    conn = psycopg2.connect(**DB_CONFIG)
-    cur = conn.cursor()
+# Takip edilecek hisseler
+SYMBOLS = ["THYAO.IS", "EREGL.IS", "ASELS.IS"]
 
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] Tur {iteration+1}/30 Başladı...")
+def collect_data():
+    conn = None
+    try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        cur = conn.cursor()
+        
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Veri toplama başladı...")
 
-    for sym in symbols:
-        ticker = yf.Ticker(sym)
-        data = ticker.history(period="1d")
-        if not data.empty:
-            price = data['Close'].iloc[-1]
-            print(f"DEBUG: {sym} için fiyat alındı: {price}") # Bu satırı ekle
-            # Yeni tabloya kaydet
-            cur.execute(
-                "INSERT INTO price_history (fund_code, price) VALUES (%s, %s)",
-                (sym.replace(".IS", ""), float(price))
-            )
-        else:
-            print(f"DEBUG: {sym} için VERI BOS!") # Bunu da ekle
+        for sym in SYMBOLS:
+            try:
+                ticker = yf.Ticker(sym)
+                
+                # history() veya fast_info yerine en temel info sözlüğünü çekiyoruz
+                info = ticker.info
+                
+                # Yahoo fiyatı bazen 'currentPrice' bazen 'regularMarketPrice' altında gizler
+                current_price = info.get('currentPrice') or info.get('regularMarketPrice')
+                
+                if current_price is not None:
+                    price = float(current_price)
+                    clean_sym = sym.replace(".IS", "")
+                    
+                    cur.execute(
+                        "INSERT INTO price_history (fund_code, price) VALUES (%s, %s)",
+                        (clean_sym, price)
+                    )
+                    print(f"  ✅ {clean_sym}: {price:.2f} TL")
+                else:
+                    print(f"  ⚠️ {sym}: info sözlüğünde fiyat bulunamadı.")
+                    
+            except Exception as sub_e:
+                print(f"  ❌ {sym} hatası: {sub_e}")
+                continue
+        conn.commit()
+        cur.close()
 
-    
-    conn.commit()
-    cur.close()
-    conn.close()
+    except Exception as e:
+        print(f"‼️ Genel hata: {e}")
+    finally:
+        if conn:
+            conn.close()
 
-# Ana Döngü: 30 Dakika Boyunca Çalışır
-for i in range(30):
-    collect_data(i)
-    if i < 29: # Son turda beklemeye gerek yok
-        print("Bir sonraki dakika için bekleniyor...")
+# --- ANA DÖNGÜ (DURDURULABİLİR) ---
+print("🚀 Veri toplama botu çalışıyor. Durdurmak için Ctrl+C tuşuna basın.")
+try:
+    iteration = 0
+    while True: # Belirli bir sayı yerine sonsuz döngü (sen durdurana kadar)
+        iteration += 1
+        collect_data()
+        print(f"💤 Tur {iteration} bitti. 60 saniye bekleniyor...\n")
         time.sleep(60)
 
-print("Veri toplama tamamlandı!")
+except KeyboardInterrupt:
+    print("\n🛑 İşlem kullanıcı tarafından durduruldu (Ctrl+C).")
+    print("👋 Veritabanı bağlantıları kapatıldı, çıkış yapılıyor.")
+
+except Exception as main_e:
+    print(f"‼️ Beklenmedik hata: {main_e}")
