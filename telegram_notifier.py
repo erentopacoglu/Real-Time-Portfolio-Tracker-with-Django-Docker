@@ -4,8 +4,8 @@ import time
 from datetime import datetime
 
 # --- AYARLAR ---
-TOKEN = "8606886121:AAEjhuBVzrc6yzPEjSSAJY_FfW2I5Vnu7RQ" # Örn: "123456:ABC-DEF..."
-CHAT_ID = "5756073337" # Örn: "987654321"
+TOKEN = "CUSTOMIZE_WITH_YOUR_OWNTOKEN" # Örn: "123456:ABC-DEF..."
+CHAT_ID = "CUSTOMIZE_WITH_YOUR_OWNID" # Örn: "987654321"
 
 # Takip Edilecek Alarm Limitleri
 # Fiyat bu aralığın dışına çıkarsa mesaj atar.
